@@ -1,0 +1,84 @@
+---
+- name: setup fluentd aggregator host
+  hosts: 127.0.0.1
+  become: yes
+  roles:
+    - {role: "docker", tags: "setup"}
+    - {role: "limits", tags: "setup"}
+    - {role: "kernel", tags: "set"}
+    - {role: "fluentd", tags: "app"}
+
+- name: setup fluentd aggregator host
+  hosts: 127.0.0.1
+  become: yes
+  roles:
+    - {role: "docker", tags: "never", "pci"}
+    - {role: "limits", tags: "never", "pci"}
+    - {role: "kernel", tags: "never", "pci"}
+    - {role: "fluentd", tags: "never", "pci"}
+  vars:
+    proxy_env:
+      http_proxy: http://127.0.0.1:8080
+      https_proxy: http://127.0.0.1:8080
+
+
+- name: setup ElasticSearch host
+  hosts: esmaster
+  become: yes
+  vars:
+    elasticsearch_version: 6.6.0
+    searchguard_elasticsearch_version: "{{ elasticsearch_version }}-24.1"
+  roles:
+    - {role: "docker", tags: "setup"}
+    - {role: "limits", tags: "setup"}
+    - {role: "kernel", tags: "set"}
+    - {role: "esmaster", tags: "app"}
+
+- name: install ElasticSearch Data Host
+  hosts: esdata
+  become: yes
+  vars:
+    elasticsearch_version: 6.6.0
+    searchguard_elasticsearch_version: "{{ elasticsearch_version }}-24.1"
+  roles:
+    - {role: "docker", tags: "setup"}
+    - {role: "limits", tags: "setup"}
+    - {role: "kernel", tags: "set"}
+    - {role: "esdata", tags: "app"}
+
+- name: install ElasticSearch CrossCluster Search Host
+  hosts: escross
+  become: yes
+  vars:
+    elasticsearch_version: 6.6.0
+    searchguard_elasticsearch_version: "{{ elasticsearch_version }}-24.1"
+  roles:
+    - {role: "docker", tags: "setup"}
+    - {role: "limits", tags: "setup"}
+    - {role: "kernel", tags: "set"}
+    - {role: "escross", tags: "app"}
+
+- name: Setup Kibana Host
+  hosts: kibana
+  become: yes
+  vars:
+    kibana_version: 6.6.0
+    searchguard_kibana_version: "{{ kibana_version }}-18"
+    kibana_es_host: "{{ hostvars[groups['escross'][0]].inventory_hostname }}"
+  roles:
+    - {role: "docker", tags: "setup"}
+    - {role: "limits", tags: "setup"}
+    - {role: "kernel", tags: "set"}
+    - {role: "kibana", tags: "app"}
+
+- name: Setup Curator
+  hosts: esmaster[0]
+  become: yes
+  roles:
+    - {role: "curator", tags: "curator"}
+
+#- name: Setup SGAdmin
+#  hosts: esmaster[0]
+#  become: yes
+#  roles:
+#    - {role: sgadmin}

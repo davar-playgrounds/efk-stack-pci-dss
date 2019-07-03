@@ -1,0 +1,37 @@
+- name: stop all docker containers
+  shell: "docker stop $(docker ps -a -q)"
+  ignore_errors: yes
+
+- name: delete all docker containers
+  shell: "docker rm $(docker ps -a -q)"
+  ignore_errors: yes
+
+- name: Clear data dir
+  file:
+    path: /opt/esdata
+    state: absent
+
+- name: Clear master dir
+  file:
+    path: /opt/esmaster
+    state: absent
+
+- name: Clear cross dir
+  file:
+    path: /opt/escross
+    state: absent
+
+- name: Clear config dir
+  file:
+    path: /opt/esconfig
+    state: absent
+
+- name: Clear sgadmin dir
+  file:
+    path: /opt/sgadmin
+    state: absent
+
+- name: Clear kibana dir
+  file:
+    path: /opt/kibana
+    state: absent

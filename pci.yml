@@ -1,0 +1,13 @@
+- name: setup fluentd aggregator host
+  hosts: 127.0.0.1
+  become: yes
+  roles:
+    - docker
+    - limits
+    - kernel
+    - fluentd
+  vars:
+    proxy_env:
+      http_proxy: http://127.0.0.1:8080
+      https_proxy: http://127.0.0.1:8080
+      no_proxy: "*.complex.local, localhost"

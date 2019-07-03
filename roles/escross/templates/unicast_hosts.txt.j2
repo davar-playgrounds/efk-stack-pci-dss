@@ -1,0 +1,3 @@
+{% for h in groups['esmaster'] %}
+{{ hostvars[h].inventory_hostname | regex_replace(' ') | regex_replace('	') | regex_replace(':') }}
+{% endfor %}

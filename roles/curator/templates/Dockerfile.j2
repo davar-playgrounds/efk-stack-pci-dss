@@ -1,0 +1,18 @@
+FROM alpine:3.7
+
+
+RUN apk add --update \
+    python3 \
+    python3-dev \
+    py-pip \
+    build-base \
+  && pip3 install -U elasticsearch-curator=={{ curator_version }} \
+  && rm -rf /var/cache/apk/*
+
+# Configure cron
+COPY crontab /etc/cron/crontab
+
+# Init cron
+RUN crontab /etc/cron/crontab
+
+CMD ["crond", "-f"]

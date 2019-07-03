@@ -1,0 +1,2 @@
+elasticsearch_version: 6.6.0
+searchguard_elasticsearch_version: "{{ elasticsearch_version }}-24.1"

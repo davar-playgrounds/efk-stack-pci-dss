@@ -1,0 +1,95 @@
+---
+  - name: create kibana tmp dir
+    file:
+      path: /tmp/kibana
+      state: directory
+
+  - name: upload kibanacontainer sources
+    copy:
+      src: "{{ role_path }}/files/"
+      dest: /tmp/kibana
+
+  - name: upload dockerfile template
+    template:
+      src: Dockerfile.j2
+      dest: /tmp/kibana/Dockerfile
+
+  - name: upload config file template
+    template:
+      src: kibana.yml.j2
+      dest: /tmp/kibana/kibana.yml
+
+  - name: build Kibana docker container
+    docker_image:
+      path: /tmp/kibana
+      name: complex-kibana
+      tag: latest
+      state: present
+      force: yes
+      buildargs:
+        http_proxy: "{{ proxy_env.http_proxy }}"
+        https_proxy: "{{ proxy_env.https_proxy }}"
+        no_proxy: "{{ proxy_env.no_proxy }}"
+    when: 'proxy_env is defined and "http_proxy" in proxy_env'
+
+  - name: build Kibana docker container
+    docker_image:
+      path: /tmp/kibana
+      name: complex-kibana
+      tag: latest
+      state: present
+      force: yes
+    when: 'proxy_env is undefined or "http_proxy" not in proxy_env'
+
+  - name: create config directory
+    file:
+      path: /opt/kibana
+      state: directory
+
+  - name: Copy config files to mount dir
+    copy: 
+      src: "/tmp/kibana/{{ item }}"
+      dest: "/opt/kibana/{{ item }}"
+      remote_src: yes 
+    with_items: 
+      - "kibana.yml"
+
+  - name: copy certs to mount dir
+    command: "cp -R /tmp/kibana/certificates/. /opt/kibana/"
+
+  - name: run Kibana container
+    docker_container:
+      name: kibana
+      image: complex-kibana:latest
+      state: started
+      exposed_ports: all
+      published_ports: 
+        - 80:80
+        - 443:443
+      volumes: 
+        - /opt/kibana:/etc/kibana:rw
+      restart_policy: unless-stopped
+      env:
+        http_proxy: "{{ proxy_env.http_proxy }}"
+        https_proxy: "{{ proxy_env.https_proxy }}"
+        no_proxy: "{{ proxy_env.no_proxy }}"
+    when: 'proxy_env is defined and "http_proxy" in proxy_env'
+
+  - name: run Kibana container
+    docker_container:
+      name: kibana
+      image: complex-kibana:latest
+      state: started
+      exposed_ports: all
+      published_ports: 
+        - 80:80
+        - 443:443
+      volumes: 
+        - /opt/kibana:/etc/kibana:rw
+      restart_policy: unless-stopped
+    when: 'proxy_env is undefined or "http_proxy" not in proxy_env'
+
+  - name: remove kibana tmp dir
+    file:
+      path: /tmp/kibana
+      state: absent

@@ -1,0 +1,5 @@
+---
+#passwords:
+fluentd_password: "PWD"
+kibanaserver_password: "PWD"
+curator_password: "PWD"

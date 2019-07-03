@@ -1,0 +1,45 @@
+cluster.name: complex-efk
+node.name: {{ ansible_hostname }}
+
+
+node.master: false
+node.data: true
+node.ingest: true
+cluster.remote.connect: false
+discovery.zen.hosts_provider: file
+discovery.zen.ping_timeout: "3s"
+discovery.zen.minimum_master_nodes: 2
+
+network.publish_host: {{ ansible_ens192.ipv4.address }}
+network.bind_host: 0.0.0.0
+
+#xpack
+xpack.monitoring.enabled: true
+xpack.monitoring.collection.enabled: true
+xpack.security.enabled: false
+xpack.ml.enabled: false
+
+# Searchguard config
+searchguard.ssl.transport.pemcert_filepath: esdata.pem
+searchguard.ssl.transport.pemkey_filepath: esdata.key
+searchguard.ssl.transport.pemtrustedcas_filepath: root-ca.pem
+searchguard.ssl.transport.enforce_hostname_verification: false
+searchguard.ssl.http.enabled: true
+searchguard.ssl.http.pemcert_filepath: esdata_http.pem
+searchguard.ssl.http.pemkey_filepath: esdata_http.key
+searchguard.ssl.http.pemtrustedcas_filepath: root-ca.pem
+
+searchguard.audit.type: internal_elasticsearch
+searchguard.enable_snapshot_restore_privilege: true
+searchguard.check_snapshot_restore_write_privileges: true
+searchguard.restapi.roles_enabled: ["sg_all_access"]
+cluster.routing.allocation.disk.threshold_enabled: false
+
+searchguard.nodes_dn:
+- CN=esdata.complex.local,OU=Ops,O=Complex\, Inc.,DC=complex,DC=local
+- CN=escross.complex.local,OU=Ops,O=Complex\, Inc.,DC=complex,DC=local
+- CN=esmaster.complex.local,OU=Ops,O=Complex\, Inc.,DC=complex,DC=local
+- CN=kibana.complex.local,OU=Ops,O=Complex\, Inc.,DC=complex,DC=local
+
+searchguard.authcz.admin_dn:
+  - CN=sgadmin.complex.local,OU=Ops,O=Complex\, Inc.,DC=complex,DC=local

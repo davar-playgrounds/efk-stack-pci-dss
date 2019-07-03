@@ -1,0 +1,37 @@
+# In this file users, backendroles and hosts can be mapped to Search Guard roles.
+# Permissions for Search Guard roles are configured in sg_roles.yml
+
+sg_all_access:
+  backendroles:
+    - admin
+ #   - APP_Jenkins
+  users:
+    - user1
+    
+  
+sg_kibana_server:
+  readonly: true
+  users:
+    - 'CN=kibanasg.complex.local,OU=Ops,O=Complex\, Inc.,DC=complex,DC=local'
+    - kibanaserver
+
+sg_xp_monitoring:
+  backendroles:
+    - xp_monitoring
+
+sg_fluentd:
+  users:
+    - 'CN=fluentd.complex.local,OU=Ops,O=Complex\, Inc.,DC=complex,DC=local'
+    - fluentd
+
+sg_kibana_user:
+  backendroles:
+    - kibanauser
+
+sg_own_index:
+  users:
+    - '*'
+
+sg_curator:
+  users:
+    - 'CN=curator.complex.local,OU=Ops,O=Complex\, Inc.,DC=complex,DC=local'

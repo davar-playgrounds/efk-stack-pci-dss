@@ -1,0 +1,147 @@
+---
+  - name: create esdata tmp dir
+    file:
+      path: /tmp/esdata
+      state: directory
+
+  - name: upload elasticsearch data node container sources
+    copy:
+      src: "{{ role_path }}/files/"
+      dest: /tmp/esdata
+
+  - name: upload unicasthosts template
+    template:
+      src: unicast_hosts.txt.j2
+      dest: /tmp/esdata/unicast_hosts.txt
+
+  - name: upload dockerfile template
+    template:
+      src: Dockerfile.j2
+      dest: /tmp/esdata/Dockerfile
+
+  - name: upload elasticsearch.yml template
+    template:
+      src: "elasticsearch.yml.j2"
+      dest: /tmp/esdata/elasticsearch.yml
+
+  - name: build elasticsearch data node docker image
+    docker_image:
+      path: /tmp/esdata
+      name: complex-esdata
+      tag: latest
+      state: present
+      force: true
+      buildargs:
+        http_proxy: "{{ proxy_env.http_proxy }}"
+        https_proxy: "{{ proxy_env.https_proxy }}"
+        no_proxy: "{{ proxy_env.no_proxy }}"
+    when: 'proxy_env is defined and "http_proxy" in proxy_env'
+
+  - name: build elasticsearch data node docker image
+    docker_image:
+      path: /tmp/esdata
+      name: complex-esdata
+      tag: latest
+      state: present
+      force: true
+    when: 'proxy_env is undefined or "http_proxy" not in proxy_env'
+
+  - name: create data mount dir
+    file:
+      path: /opt/esdata
+      owner: 1000
+      group: 1000
+      state: directory
+
+  - name: create config mount dir
+    file:
+      path: /opt/esconfig
+      owner: 1000
+      group: 1000
+      state: directory
+
+  - name: Copy config files to mount dir
+    copy: 
+      src: "/tmp/esdata/{{ item }}"
+      dest: "/opt/esconfig/{{ item }}"
+      remote_src: yes 
+    with_items: 
+      - "elasticsearch.yml"
+      - "unicast_hosts.txt"
+      - "jvm.options"
+      - "log4j2.properties"
+
+ #this step can be use with ansible 2.8, eta may 2019
+#  - name: copy certs to mount dir
+#    copy:
+#      src: /tmp/esdata/certificates/.
+#      dest: /opt/esconfig
+#      remote_src: yes 
+#      directory_mode: yes
+
+  - name: copy certs to mount dir
+    command: "cp -R /tmp/esdata/certificates/. /opt/esconfig/"
+
+  - name: set config mount dir permissions
+    file:
+      path: /opt/esconfig
+      owner: 1000
+      group: 1000
+      state: directory
+      recurse: true
+
+  - name: run the ElasticSearch DataNode docker container
+    docker_container:
+      name: esdata
+      image: complex-esdata:latest
+      state: started
+      published_ports: 
+        - "{{ ansible_ens192.ipv4.address }}:9300:9300"
+        - "{{ ansible_ens192.ipv4.address }}:9200:9200"
+      restart_policy: always
+      recreate: true
+      volumes: 
+        - /opt/esdata:/usr/share/elasticsearch/data:rw
+        - /opt/esconfig:/etc/elasticsearch:rw
+      env:
+        ES_JAVA_OPTS: -Xm28g -Xmx28g
+        http_proxy: "{{ proxy_env.http_proxy }}"
+        https_proxy: "{{ proxy_env.https_proxy }}"
+        no_proxy: "{{ proxy_env.no_proxy }}"
+    when: 'proxy_env is defined and "http_proxy" in proxy_env'
+
+  - name: run the ElasticSearch DataNode docker container
+    docker_container:
+      name: esdata
+      image: complex-esdata:latest
+      state: started
+      published_ports: 
+        - "{{ ansible_ens192.ipv4.address }}:9300:9300"
+        - "{{ ansible_ens192.ipv4.address }}:9200:9200"
+      restart_policy: always
+      recreate: true
+      volumes: 
+        - /opt/esdata:/usr/share/elasticsearch/data:rw
+        - /opt/esconfig:/etc/elasticsearch:rw
+      env:
+        ES_JAVA_OPTS: -Xms28g -Xmx28g
+    when: 'proxy_env is undefined or "http_proxy" not in proxy_env'
+
+  - name: remove esdata tmp dir
+    file:
+      path: /tmp/esdata
+      state: absent
+
+  - name: Clean up old docker data
+    command: "docker system prune -f"
+  - name: Clean up old docker images
+    command:  "docker image prune -a -f"
+#    docker_prune:
+#      containers: yes
+#      containers_filters:
+#        # only consider containers created more than 24 hours ago
+#        until: 24h
+#      images: yes
+#      images_filters:
+#        dangling: false
+#        until: 24h

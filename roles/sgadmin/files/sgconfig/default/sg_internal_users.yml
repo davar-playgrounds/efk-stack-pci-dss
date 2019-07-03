@@ -1,0 +1,10 @@
+# This is the internal user database
+# The hash value is a bcrypt hash and can be generated with plugin/tools/hash.sh
+
+#password is: kibanaserver  
+kibanaserver:
+  readonly: true
+  hash: somehash.
+
+fluentd:
+  hash: somehash

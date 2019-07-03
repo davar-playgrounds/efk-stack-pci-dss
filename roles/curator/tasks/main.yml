@@ -1,0 +1,110 @@
+---
+  - name: create curator tmp dir
+    file:
+      path: /tmp/curator
+      state: directory
+
+  - name: upload elasticsearch curator container sources
+    copy:
+      src: "{{ role_path }}/files/"
+      dest: /tmp/curator
+
+  - name: upload templates
+    template:
+      src: "{{ item }}"
+      dest: "/tmp/curator/{{ item | basename | regex_replace('\\.j2','') }}"
+    with_fileglob:
+      - "{{ role_path }}/templates/*.j2"
+
+#todo: automagically create entries based on files in dir
+#  - name: upload crontab file
+#    template:
+#      src: "{{ role_path }}/templates/crontab.j2"
+#      dest: "/tmp/curator/crontab"
+
+  - name: build elasticsearch curator docker image
+    docker_image:
+      path: /tmp/curator
+      name: complex-curator
+      tag: latest
+      state: present
+      force: true
+      buildargs:
+        http_proxy: "{{ proxy_env.http_proxy }}"
+        https_proxy: "{{ proxy_env.https_proxy }}"
+        no_proxy: "{{ proxy_env.no_proxy }}"
+    when: 'proxy_env is defined and "http_proxy" in proxy_env'
+
+  - name: build elasticsearch curator docker image
+    docker_image:
+      path: /tmp/curator
+      name: complex-curator
+      tag: latest
+      state: present
+      force: true
+    when: 'proxy_env is undefined or "http_proxy" not in proxy_env'
+
+  - name: create config mount dir
+    file:
+      path: /opt/curator
+      owner: 1000
+      group: 1000
+      state: directory
+
+  - name: create actions directory
+    file:
+      path: /opt/curator/actions
+      owner: 1000
+      group: 1000
+      state: directory
+
+  - name: Copy config to mount dir
+    copy:
+      src: "/tmp/curator/curator.yml"
+      dest: "/opt/curator/"
+      remote_src: yes
+
+  - name: copy certs to mount dir
+    command: "cp -R /tmp/curator/certificates/. /opt/curator/"
+
+  - name: copy action files to mount dir
+    command: "cp -R /tmp/curator/actions/. /opt/curator/actions"
+
+  - name: run the ElasticSearch curator docker container
+    docker_container:
+      name: curator
+      image: complex-curator:latest
+      state: started
+      restart_policy: unless-stopped
+      recreate: true
+      volumes: 
+        - /opt/curator:/opt/curator:rw
+      log_driver: fluentd
+      log_options:
+        fluentd-address: 127.0.0.1:24224
+        tag: "efk.curator"
+      env:
+        http_proxy: "{{ proxy_env.http_proxy }}"
+        https_proxy: "{{ proxy_env.https_proxy }}"
+        no_proxy: "{{ proxy_env.no_proxy }}"
+    when: 'proxy_env is defined and "http_proxy" in proxy_env'
+
+  - name: run the ElasticSearch curator docker container
+    docker_container:
+      name: curator
+      image: complex-curator:latest
+      state: started
+      restart_policy: unless-stopped
+      recreate: true
+      volumes: 
+        - /opt/curator:/opt/curator:rw
+      log_driver: fluentd
+      log_options:
+        fluentd-address: 127.0.0.1:24224
+        tag: "efk.curator"
+    when: 'proxy_env is undefined or "http_proxy" not in proxy_env'
+
+  - name: remove curator tmp dir
+    file:
+      path: /tmp/curator
+      state: absent

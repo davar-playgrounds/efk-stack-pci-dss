@@ -1,0 +1,6 @@
+---
+- name: clean config and data dirs
+  hosts: all
+  become: yes
+  roles:
+    - clean

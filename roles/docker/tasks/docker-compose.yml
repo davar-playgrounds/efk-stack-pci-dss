@@ -1,0 +1,29 @@
+- name: "Check if docker-compose is installed"
+  stat: 
+    path: /usr/local/bin/docker-compose
+  register: docker_compose_installed
+
+- name: "Check docker-compose version"
+  shell: "/usr/local/bin/docker-compose version|grep 'docker-compose version'|sed -e 's/,.*//' -e 's/.* //'"
+  register: docker_compose_installed_version
+  when: docker_compose_installed.stat.exists is defined and docker_compose_installed.stat.exists == False
+
+- name: "Ensure docker-compose is installed and available"
+  get_url:
+    url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_userspace_architecture }}"
+    dest: /usr/local/bin/docker-compose
+    validate_certs: false
+  when: docker_compose_installed_version.stdout is not defined or docker_compose_installed_version.stdout != docker_compose_version
+
+- name: "Set file mode on /usr/local/bin/docker-compose"
+  file: 
+    path: /usr/local/bin/docker-compose 
+    state: file 
+    mode: 0755
+
+- name: "Create softlink for docker-compose"
+  file: 
+    src: /usr/local/bin/docker-compose 
+    dest: /usr/bin/docker-compose 
+    state: link
+    force: true

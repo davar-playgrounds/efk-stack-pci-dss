@@ -1,0 +1,49 @@
+server.name: kibana
+server.host: 0.0.0.0
+server.port: 443
+
+kibana.index: ".kibana"
+
+
+elasticsearch.username: "kibanaserver"
+elasticsearch.password: "{{ kibanaserver_password }}"
+
+elasticsearch.ssl.certificateAuthorities: /etc/kibana/root-ca.pem
+elasticsearch.ssl.verificationMode: certificate
+elasticsearch.url: https://{{ kibana_es_host }}:9200
+
+elasticsearch.requestHeadersWhitelist: [ "Authorization", "sgtenant" ]
+
+logging.quiet: true
+
+server.ssl.enabled: true
+server.ssl.certificate: /opt/ssl/domain.local.crt
+server.ssl.key: /opt/ssl/domain.local.key
+server.ssl.redirectHttpFromPort: 80
+
+
+searchguard.multitenancy.enabled: true
+searchguard.multitenancy.tenants.enable_global: false
+searchguard.multitenancy.tenants.enable_private: false
+searchguard.cookie.password: "StrongCookiePassword"
+searchguard.cookie.secure: true
+
+searchguard.cookie.ttl: 7200000
+searchguard.session.ttl: 7200000
+searchguard.session.keepalive: true
+
+
+
+
+#xpack
+xpack.monitoring.enabled: true
+xpack.security.enabled: false
+xpack.apm.ui.enabled: false
+xpack.grokdebugger.enabled: false
+xpack.searchprofiler.enabled: false
+xpack.graph.enabled: false
+xpack.ml.enabled: false
+xpack.reporting.enabled: false
+xpack.canvas.enabled: false
+xpack.infra.enabled: false
+xpack.spaces.enabled: false

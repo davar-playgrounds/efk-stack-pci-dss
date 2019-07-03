@@ -1,0 +1,66 @@
+<system>
+  workers 4
+</system>
+
+<source>
+  @type forward
+  port 24224
+  bind 0.0.0.0
+  @label @FWD
+  source_address_key source_ip
+  resolve_hostname true
+  source_hostname_key source_hostname
+</source>
+
+
+#add estype if not set
+<label @FWD> 
+  <filter **>
+    @type record_transformer
+    enable_ruby
+    <record>
+      es_type ${record['es_type'] || 'log'}
+    </record>
+  </filter>
+
+#what happens if no dot??
+#filter tag to only 
+#<filter **>
+#  @type record_transformer
+#  enable_ruby
+#  <record>
+#    full_tag tag
+#    tag ${tag.split('.')[0] + tag.split('.')[1]}
+#  </record>
+#</filter>
+
+  <match **>
+    @type elasticsearch
+    hosts {{ fluentd_es_hosts }}
+    port 9200
+    scheme https
+    ca_file /etc/fluent/root-ca.pem
+    user fluentd
+    password {{ fluentd_password }}
+    ssl_version TLSv1_2
+    ssl_verify false
+    logstash_format true
+    logstash_prefix ${tag}
+    logstash_dateformat %Y%m%d
+    include_tag_key true
+    type_name _doc
+    tag_key @log_name
+    request_timeout  120s
+    reconnect_on_error true
+    <buffer>
+      @type file
+      path /opt/fluent/buffer
+      flush_interval 5s
+      retry_wait 20s
+      retry_exponential_backoff_base 4
+      retry_timeout 24h
+      retry_max_times 20
+      flush_thread_count 4
+    </buffer>
+  </match>
+</label>

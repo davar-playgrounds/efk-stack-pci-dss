@@ -1,0 +1,63 @@
+---
+#  - name: copy fluentd container sources
+#    copy:
+#      src: "{{ role_path }}/files/"
+#      dest: /tmp/fluentd
+  - name: create fluentd tmp dir
+    file:
+      path: /tmp/fluentd
+      state: directory
+ 
+  - name: add Dockerfile
+    template:
+      src: "Dockerfile.j2"
+      dest: /tmp/fluentd/Dockerfile
+
+  - name: add fluentd config
+    template:
+      src: "fluent.conf.j2"
+      dest: /tmp/fluentd/fluent.conf
+
+  - name: add certificate files
+    copy:
+      src: "{{ role_path }}/files/certificates/"
+      dest: /tmp/fluentd
+
+  - name: build fluentd docker image
+    docker_image:
+      path: /tmp/fluentd
+      name: complex-fluentd
+      tag: latest
+      state: present
+      force: true
+      buildargs:
+        http_proxy: "{{ proxy_env.http_proxy }}"
+        https_proxy: "{{ proxy_env.https_proxy }}"
+        no_proxy: "{{ proxy_env.no_proxy }}"
+    when: 'proxy_env is defined and "http_proxy" in proxy_env'
+
+  - name: build fluentd docker image
+    docker_image:
+      path: /tmp/fluentd
+      name: complex-fluentd:latest
+      tag: latest
+      state: present
+      force: true
+    when: 'proxy_env is undefined or "http_proxy" not in proxy_env'
+
+  - name: Clean fluent tmp dir
+    file:
+      path: /tmp/fluentd
+      state: absent
+
+  - name: run the fluentd docker container
+    docker_container:
+      name: fluentd
+      image: complex-fluentd:latest
+      state: started
+      volumes:
+        - "/opt/fluent/:/opt/fluent/"
+      published_ports:
+        - 24224:24224
+        - 24224:24224/udp
+      restart_policy: unless-stopped

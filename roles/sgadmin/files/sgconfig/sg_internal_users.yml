@@ -1,0 +1,11 @@
+---
+curator:
+  hash: "$2y$12$6PKdvB7Lv2AHHUVKEXUIFu5fRaYX5JlQqJasd0Ym7RmmZ79ohVM6W"
+kibanaserver:
+  readonly: "true"
+  hash: "$2y$12$LzVMYBwIjmXsFGOKQQ7v0.kU.VC3Ro0jhpnfkY8yP3mdLdXPgcuj2"
+prometheus:
+  roles: []
+  hash: "$2y$12$0s3jiR7r5908bIrs/2XxOeK93ZIwqEbPfo4KEDpjsZj0kyl6zmvFS"
+fluentd:
+  hash: "$2y$12$VD.hFELY.e.WLBAvMkGB1.TyCN.ai08YS/FzTsBt52tzqdmhCbBtS"

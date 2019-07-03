@@ -1,0 +1,36 @@
+FROM debian:stretch
+
+RUN groupadd -r -g 1000 elasticsearch && useradd -r -u 1000 -g 1000 elasticsearch
+
+RUN echo 'deb http://deb.debian.org/debian stretch-backports main' \
+      > /etc/apt/sources.list.d/stretch-backports.list &&\
+    apt update -y &&\
+    apt install unzip &&\
+    apt install --target-release stretch-backports \
+      openjdk-8-jre-headless \
+      ca-certificates-java \
+      --assume-yes
+
+ADD https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ elasticsearch_version }}.deb /tmp/es.deb
+
+RUN dpkg -i /tmp/es.deb && rm -rf /tmp/*
+
+
+# copy the ESMaster config
+COPY elasticsearch.yml /etc/elasticsearch/
+COPY unicast_hosts.txt /etc/elasticsearch/
+COPY certificates /etc/elasticsearch/
+RUN chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/
+RUN chown -R elasticsearch:elasticsearch /etc/elasticsearch/
+
+#switch to elasticsearch user
+USER elasticsearch
+
+{% if http_proxy is defined %}
+ENV ES_JAVA_OPTS="-Dhttp.proxyHost={{ http_proxy.split(':')[1].split('//')[-1] }} -Dhttp.proxyPort={{ http_proxy.split(':')[2] }} -Dhttps.proxyHost={{ http_proxy.split(':')[1].split('//')[-1] }} -Dhttps.proxyPort={{ http_proxy.split(':')[2] }}"
+{% endif %}
+
+RUN /usr/share/elasticsearch/bin/elasticsearch-plugin install -b https://repo1.maven.org/maven2/com/floragunn/search-guard-6/{{ searchguard_elasticsearch_version }}/search-guard-6-{{ searchguard_elasticsearch_version }}.zip
+
+ENTRYPOINT ["/usr/share/elasticsearch/bin/elasticsearch"]
+

@@ -1,0 +1,5 @@
+{{ cron_expression }} curator --config /opt/curator/curator.yml /opt/curator/actions/action1.yml >> /dev/stdout 2>&1
+{{ cron_expression }} curator --config /opt/curator/curator.yml /opt/curator/actions/action2.yml >> /dev/stdout 2>&1
+{{ cron_expression }} curator --config /opt/curator/curator.yml /opt/curator/actions/action3.yml >> /dev/stdout 2>&1
+{{ cron_expression }} curator --config /opt/curator/curator.yml /opt/curator/actions/action4.yml >> /dev/stdout 2>&1
+# crontab requires an empty line at the end of the file

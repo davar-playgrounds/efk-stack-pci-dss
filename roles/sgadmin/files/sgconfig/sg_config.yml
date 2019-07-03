@@ -1,0 +1,90 @@
+---
+searchguard:
+  dynamic:
+    http:
+      xff:
+        remoteIpHeader: "x-forwarded-for"
+        proxiesHeader: "x-forwarded-by"
+        internalProxies: "192\\.168\\.0\\.10|192\\.168\\.0\\.11"
+        enabled: "false"
+      anonymous_auth_enabled: "false"
+    license: "LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQpIYXNoOiBTSEE1MTIKCnsKICAgICJ1aWQiOiAiMTBDQjQ1NkItNUI4OC00NDlDLUIyNDctRTQ0MDgzNEQ0NjA0IiwKICAgICJ0eXBlIjogIkZVTEwiLAogICAgImlzc3VlZF9kYXRlIjogIjIwMTktMDItMTIiLAogICAgImV4cGlyeV9kYXRlIjogIjIwMjAtMDItMTIiLAogICAgImlzc3VlZF90byI6ICJDb25jYXJkaXMgR21iSCIsCiAgICAiaXNzdWVyIjogImZsb3JhZ3VubiBHbWJIIiwKICAgICJzdGFydF9kYXRlIjogIjIwMTktMDItMTIiLAogICAgIm1ham9yX3ZlcnNpb24iOiA2LAogICAgImNsdXN0ZXJfbmFtZSI6ICIqIiwKICAgICJhbGxvd2VkX25vZGVfY291bnRfcGVyX2NsdXN0ZXIiOiAzMjc2OCwKICAgICJmZWF0dXJlcyI6IFsiIl0sCiAgICAibGljZW5zZV92ZXJzaW9uIjogMQp9Ci0tLS0tQkVHSU4gUEdQIFNJR05BVFVSRS0tLS0tCkNvbW1lbnQ6IEdQR1Rvb2xzIC0gaHR0cHM6Ly9ncGd0b29scy5vcmcKCmlRRktCQUVCQ2dBMEZpRUVNZDFncE1sMkxDblN5RlFIZFFKb3RsSHRzdjRGQWx4alBwZ1dIR2x1Wm05QWMyVmgKY21Ob0xXZDFZWEprTG1OdmJRQUtDUkIxQW1pMlVlMnkvcWowQ0FDY2o3RG82RU5MTGYzdmJqYm1vYmxsQ1lqTgpvaTdUSTFUL1ZQbDV0S1Mza0NkUEFRNTBHZnllcWxVNnBtWnJPRDRHYkJ3eCtLOU8rYTJ3dWhXTzVpdUFGc2dkCnBSUGN4ZUhHaXNtQXZRMVZocng0Y3p0eVZrNTU4My94S0lERFZoaVh4djBwbVM2TW5wQm52LzRWbGYzMVI0TTUKOVJWL1VmeS9LTDIxOEM2S0haWFBCL3RTbzlubGYySHdSa3N4OXlTSDJqcjRyb0hBNDhJK1l4K3ZnTXd1c1NCcQpQcmhqcFQ0S1ZXWmdhRWgvbGNpNkNIOThtMGZBTGc5azBDMVo1d2V0MU4rOTJVOFZCV2JYNlF5QTVPLzlGMGJoClQ3VlY0TVFwN3E0VEVocnE2WkJXTTBjQmJmL0tLaDZxRjUvRzIrRHYza1dZbmFaZUhCcHlkNkl6ZUkwbQo9eEkyRQotLS0tLUVORCBQR1AgU0lHTkFUVVJFLS0tLS0K"
+    kibana:
+      server_username: "kibanaserver"
+      index: ".kibana"
+      multitenancy_enabled: "true"
+      do_not_fail_on_forbidden: "true"
+    authc:
+      basic_internal_auth_domain:
+        http_enabled: "true"
+        authentication_backend:
+          type: "intern"
+        transport_enabled: "true"
+        http_authenticator:
+          type: "basic"
+          challenge: "true"
+        order: "4"
+      ccldap:
+        http_enabled: "true"
+        authentication_backend:
+          type: "ldap"
+          config:
+            bind_dn: "cn=servEfkstack,ou=ServiceUser,dc=complex,dc=local"
+            verify_hostnames: "true"
+            password: "Anfang1!"
+            usersearch: "(sAMAccountName={0})"
+            enable_ssl_client_auth: "false"
+            hosts:
+            - "vmfra1winad01.complex.local:3268"
+            username_attribute: "sAMAccountName"
+            skip_users:
+            - "kibanaserver"
+            - "fluentd"
+            - "prometheus"
+            - "curator"
+            userbase: "dc=complex,dc=local"
+            enable_start_tls: "false"
+            enable_ssl: "false"
+        transport_enabled: "true"
+        http_authenticator:
+          type: "basic"
+          challenge: "false"
+        order: "5"
+      clientcert_auth_domain:
+        authentication_backend:
+          type: "noop"
+        http_authenticator:
+          type: "clientcert"
+          challenge: "false"
+          config:
+            username_attribute: "CN"
+        enabled: "true"
+        order: "1"
+    authz:
+      roles_ccldap:
+        http_enabled: "true"
+        authorization_backend:
+          type: "ldap"
+          config:
+            bind_dn: "cn=servEfkstack,ou=ServiceUser,dc=complex,dc=local"
+            verify_hostnames: "true"
+            userroleattribute: null
+            rolebase: "dc=complex,dc=local"
+            hosts:
+            - "vmfra1winad01.complex.local:3268"
+            rolename: "cn"
+            userrolename: "disabled"
+            enable_start_tls: "false"
+            enable_ssl: "false"
+            rolesearch: "(member={0})"
+            password: "Anfang1!"
+            usersearch: "(uid={0})"
+            enable_ssl_client_auth: "false"
+            skip_users:
+            - "kibanaserver"
+            - "fluentd"
+            - "prometheus"
+            - "curator"
+            userbase: "dc=complex,dc=local"
+            resolve_nested_roles: "true"
+        transport_enabled: "true"

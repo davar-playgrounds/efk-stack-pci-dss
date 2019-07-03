@@ -1,0 +1,67 @@
+- name: Create sgadmin directory
+  file:
+    path: /opt/sgadmin
+    state: directory
+
+- name: Add config files
+  copy:
+    src: "{{ role_path }}/files/"
+    dest: /opt/sgadmin
+
+- name: Add dockerfile
+  template:
+    src: Dockerfile.j2
+    dest: /opt/sgadmin/Dockerfile
+
+- name: build sgadmin docker image
+  docker_image:
+    path: /opt/sgadmin
+    name: complex-sgadmin
+    tag: latest
+    state: present
+    force: true
+    buildargs:
+      http_proxy: "{{ proxy_env.http_proxy }}"
+      https_proxy: "{{ proxy_env.https_proxy }}"
+      no_proxy: "{{ proxy_env.no_proxy }}"
+  when: 'proxy_env is defined and "http_proxy" in proxy_env'
+
+- name: build sgadmin docker image
+  docker_image:
+    path: /opt/sgadmin
+    name: complex-sgadmin
+    tag: latest
+    state: present
+    force: true
+  when: 'proxy_env is undefined or "http_proxy" not in proxy_env'
+
+- name: run the sgadmin docker container to set the config
+  docker_container:
+    name: sgadmin
+    image: complex-sgadmin:latest
+    state: started
+    recreate: true
+    volumes: 
+      - /opt/sgadmin:/opt/sgadmin:rw
+    command: -cd /opt/sgadmin/sgconfig/ -h {{ ansible_ens192.ipv4.address }} -icl -nhnv -cacert /opt/sgadmin/certificates/root-ca.pem -cert /opt/sgadmin/certificates/sgadmin.pem -key /opt/sgadmin/certificates/sgadmin.key
+    env:
+      ES_JAVA_OPTS: -Xms12g -Xmx12g
+      http_proxy: "{{ proxy_env.http_proxy }}"
+      https_proxy: "{{ proxy_env.https_proxy }}"
+      no_proxy: "{{ proxy_env.no_proxy }}"
+  when: 'proxy_env is defined and "http_proxy" in proxy_env'
+
+- name: run the sgadmin docker container to set the config
+  docker_container:
+    name: sgadmin
+    image: complex-sgadmin:latest
+    state: started
+    recreate: true
+    volumes: 
+      - /opt/sgadmin:/opt/sgadmin:rw
+    command: -cd /opt/sgadmin/sgconfig/ -h {{ ansible_ens192.ipv4.address }} -icl -nhnv -cacert /opt/sgadmin/certificates/root-ca.pem -cert /opt/sgadmin/certificates/sgadmin.pem -key /opt/sgadmin/certificates/sgadmin.key
+    env:
+      ES_JAVA_OPTS: -Xms12g -Xmx12g
+  when: 'proxy_env is undefined or "http_proxy" not in proxy_env'
+
+  

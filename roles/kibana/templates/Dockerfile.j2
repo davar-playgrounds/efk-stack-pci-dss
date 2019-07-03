@@ -1,0 +1,21 @@
+FROM debian:stretch
+
+RUN apt-get update && apt-get install -y ca-certificates wget
+
+ADD https://artifacts.elastic.co/downloads/kibana/kibana-{{ kibana_version }}-amd64.deb /tmp/kibana.deb
+
+RUN dpkg -i /tmp/kibana.deb && rm -rf /tmp/*
+
+RUN mkdir /logs
+
+
+ADD cc_wild_certs/domain.local.crt /opt/ssl/domain.local.crt
+ADD cc_wild_certs/domain.local.key /opt/ssl/domain.local.key
+
+ENV NODE_OPTIONS --max-old-space-size=8192
+
+RUN /usr/share/kibana/bin/kibana-plugin install https://repo1.maven.org/maven2/com/floragunn/search-guard-kibana-plugin/{{ searchguard_kibana_version }}/search-guard-kibana-plugin-{{ searchguard_kibana_version }}.zip
+
+ADD kibana.yml /etc/kibana/
+
+CMD ["/usr/share/kibana/bin/kibana", "--config", "/etc/kibana/kibana.yml"]

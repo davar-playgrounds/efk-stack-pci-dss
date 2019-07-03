@@ -1,0 +1,144 @@
+---
+  - name: create esmaster tmp dir
+    file:
+      path: /tmp/esmaster
+      state: directory
+
+  - name: upload elasticsearch master node container sources
+    copy:
+      src: "{{ role_path }}/files/"
+      dest: /tmp/esmaster
+
+  - name: upload dockerfile template
+    template:
+      src: Dockerfile.j2
+      dest: /tmp/esmaster/Dockerfile
+
+  - name: upload unicasthosts template
+    template:
+      src: unicast_hosts.txt.j2
+      dest: /tmp/esmaster/unicast_hosts.txt
+
+  - name: upload elasticsearch.yml template
+    template:
+      src: "elasticsearch.yml.j2"
+      dest: /tmp/esmaster/elasticsearch.yml
+
+  - name: build elasticsearch master node docker image
+    docker_image:
+      path: /tmp/esmaster
+      name: complex-esmaster
+      tag: latest
+      state: present
+      force: true
+      buildargs:
+        http_proxy: "{{ proxy_env.http_proxy }}"
+        https_proxy: "{{ proxy_env.https_proxy }}"
+        no_proxy: "{{ proxy_env.no_proxy }}"
+    when: 'proxy_env is defined and "http_proxy" in proxy_env'
+
+  - name: build elasticsearch master node docker image
+    docker_image:
+      path: /tmp/esmaster
+      name: complex-esmaster
+      tag: latest
+      state: present
+      force: true
+    when: 'proxy_env is undefined or "http_proxy" not in proxy_env'
+ 
+#remove when really getting data
+#  - name: Clear mount dir
+ #   file:
+  #    path: /opt/esmaster
+   #   state: absent
+
+  - name: create data mount dir
+    file:
+      path: /opt/esmaster
+      owner: 1000
+      group: 1000
+      state: directory
+
+  - name: create config mount dir
+    file:
+      path: /opt/esconfig
+      owner: 1000
+      group: 1000
+      state: directory
+
+  - name: Copy config files to mount dir
+    copy: 
+      src: "/tmp/esmaster/{{ item }}"
+      dest: "/opt/esconfig/{{ item }}"
+      remote_src: yes 
+    with_items: 
+      - "elasticsearch.yml"
+      - "unicast_hosts.txt"
+      - "jvm.options"
+      - "log4j2.properties"
+
+ #this step can be use with ansible 2.8, eta may 2019
+#  - name: copy certs to mount dir
+#    copy:
+#      src: /tmp/esmaster/certificates/.
+#      dest: /opt/esconfig
+#      remote_src: yes 
+#      directory_mode: yes
+
+  - name: copy certs to mount dir
+    command: "cp -R /tmp/esmaster/certificates/. /opt/esconfig/"
+
+  - name: set config mount dir permissions
+    file:
+      path: /opt/esconfig
+      owner: 1000
+      group: 1000
+      state: directory
+      recurse: true
+
+  - name: run the ElasticSearch MasterNode docker container
+    docker_container:
+      name: esmaster
+      image: complex-esmaster:latest
+      state: started
+      published_ports: 
+        - "{{ ansible_ens192.ipv4.address }}:9300:9300"
+        - "{{ ansible_ens192.ipv4.address }}:9200:9200"
+      restart_policy: unless-stopped
+      recreate: true
+      volumes: 
+        - /opt/esmaster:/usr/share/elasticsearch/data:rw
+        - /opt/esconfig:/etc/elasticsearch:rw
+      env:
+        ES_JAVA_OPTS: -Xms12g -Xmx12g
+        http_proxy: "{{ proxy_env.http_proxy }}"
+        https_proxy: "{{ proxy_env.https_proxy }}"
+        no_proxy: "{{ proxy_env.no_proxy }}"
+    when: 'proxy_env is defined and "http_proxy" in proxy_env'
+
+  - name: run the ElasticSearch MasterNode docker container
+    docker_container:
+      name: esmaster
+      image: complex-esmaster:latest
+      state: started
+      published_ports: 
+        - "{{ ansible_ens192.ipv4.address }}:9300:9300"
+        - "{{ ansible_ens192.ipv4.address }}:9200:9200"
+      restart_policy: unless-stopped
+      recreate: true
+      volumes: 
+        - /opt/esmaster:/usr/share/elasticsearch/data:rw
+        - /opt/esconfig:/etc/elasticsearch:rw
+      env:
+        ES_JAVA_OPTS: -Xms12g -Xmx12g
+    when: 'proxy_env is undefined or "http_proxy" not in proxy_env'
+
+  - name: remove esmaster tmp dir
+    file:
+      path: /tmp/esmaster
+      state: absent
+
+  - name: Clean up old docker data
+    command: "docker system prune -f"
+  - name: Clean up old docker images
+    command:  "docker image prune -a -f"

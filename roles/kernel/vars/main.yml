@@ -1,0 +1,8 @@
+---
+kernel:
+  - { param: 'net.ipv4.tcp_tw_recycle', value: '1' }
+  - { param: 'net.ipv4.tcp_tw_reuse', value: '1' }
+  - { param: 'vm.max_map_count', value: '262144' }
+  - { param: 'vm.swappiness', value: '1' }
+  - { param: 'net.core.somaxconn', value: '65535' }
+  - { param: 'fs.file-max', value: '518144' }  

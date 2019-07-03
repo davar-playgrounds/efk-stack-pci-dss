@@ -1,0 +1,33 @@
+- name: "disable fastestmirror"
+  lineinfile: 
+    dest: /etc/yum/pluginconf.d/fastestmirror.conf 
+    regexp: "enabled=1" 
+    line: "enabled=0" 
+    state: present 
+    create: yes
+
+- name: 'Add docker repo'
+  command: 'yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo'
+
+- name: 'Enable rhel repos'
+  rhsm_repository: 
+    name: "{{ item }}" 
+    state: enabled
+  with_items: ['rhel-7-server-extras-rpms', 'rhel-7-server-rpms', 'rhel-7-server-optional-rpms']
+  when: ansible_distribution == 'Red Hat Enterprise Linux'
+
+- name: 'Install prerequisites: ca-certificates'
+  yum: 
+    name: 'ca-certificates'
+    state: latest
+
+- name: make sure docker-py is not installed
+  pip:
+    name: docker-py
+    state: absent
+
+- name: install python modules for docker
+  pip:
+    name: docker
+    state: present
+

@@ -1,0 +1,13 @@
+---
+# This role allows to both get all current config from the elasticsearch cluster as well as set all config on the elasticsearch cluster.
+# Since setting will overwrite all changes done in the webui an export is done before. The exports can be found under /opt/sgadmin/export.
+# An export without setting can be done by just calling this role without any tags
+- include: get.yml
+  tags:
+    - always
+
+- include: set.yml
+  tags:
+    - set
+    - never
+

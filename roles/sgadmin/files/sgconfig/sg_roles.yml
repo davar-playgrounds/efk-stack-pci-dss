@@ -1,0 +1,181 @@
+---
+sg_fluentd:
+  cluster:
+  - "CLUSTER_MONITOR"
+  - "CLUSTER_COMPOSITE_OPS_RO"
+  indices:
+    '*':
+      '*':
+      - "WRITE"
+      - "CREATE_INDEX"
+    fluentd-*:
+      '*':
+      - "UNLIMITED"
+user_myc:
+  cluster: []
+  tenants:
+    myc_tenant: "RW"
+  indices:
+    myc*:
+      '*':
+      - "ALL"
+      - "UNLIMITED"
+user_payengine:
+  cluster: []
+  tenants:
+    payengine_tenant: "RW"
+  indices:
+    payengine*:
+      '*':
+      - "UNLIMITED"
+user_integration_layer:
+  cluster: []
+  tenants:
+    il_tenant: "RW"
+  indices:
+    il-*:
+      '*':
+      - "ALL"
+      - "UNLIMITED"
+sg_xp_monitoring:
+  cluster:
+  - "cluster:monitor/xpack/info"
+  - "cluster:monitor/main"
+  - "cluster:admin/xpack/monitoring/bulk"
+  indices:
+    ?monitor*:
+      '*':
+      - "INDICES_ALL"
+  readonly: "true"
+user_ods:
+  cluster: []
+  tenants:
+    ods_tenant: "RW"
+  indices:
+    ods-*:
+      '*':
+      - "ALL"
+      - "UNLIMITED"
+sg_kibana_user:
+  cluster:
+  - "INDICES_MONITOR"
+  - "CLUSTER_COMPOSITE_OPS"
+  indices:
+    ?kibana-6:
+      '*':
+      - "MANAGE"
+      - "INDEX"
+      - "READ"
+      - "DELETE"
+    ?kibana_*:
+      '*':
+      - "MANAGE"
+      - "INDEX"
+      - "READ"
+      - "DELETE"
+    ?management-beats:
+      '*':
+      - "INDICES_ALL"
+    '*':
+      '*':
+      - "indices:data/read/field_caps*"
+      - "indices:data/read/xpack/rollup*"
+      - "indices:admin/mappings/get*"
+      - "indices:admin/get"
+    ?kibana:
+      '*':
+      - "MANAGE"
+      - "INDEX"
+      - "READ"
+      - "DELETE"
+    ?tasks:
+      '*':
+      - "INDICES_ALL"
+  readonly: "true"
+user_mule:
+  cluster: []
+  tenants:
+    mule_tenant: "RW"
+  indices:
+    mule*:
+      '*':
+      - "ALL"
+      - "UNLIMITED"
+sg_kibana_server:
+  cluster:
+  - "CLUSTER_MONITOR"
+  - "CLUSTER_COMPOSITE_OPS"
+  - "cluster:admin/xpack/monitoring*"
+  - "indices:admin/template*"
+  - "indices:data/read/scroll*"
+  indices:
+    ?kibana-6:
+      '*':
+      - "INDICES_ALL"
+    ?management-beats*:
+      '*':
+      - "INDICES_ALL"
+    ?kibana_*:
+      '*':
+      - "INDICES_ALL"
+    ?monitoring*:
+      '*':
+      - "INDICES_ALL"
+    ?reporting*:
+      '*':
+      - "INDICES_ALL"
+    '*':
+      '*':
+      - "indices:admin/aliases*"
+    ?kibana:
+      '*':
+      - "INDICES_ALL"
+    ?tasks:
+      '*':
+      - "INDICES_ALL"
+  readonly: "true"
+sg_all_access:
+  cluster:
+  - "UNLIMITED"
+  tenants:
+    admin_tenant: "RW"
+  indices:
+    '*':
+      '*':
+      - "UNLIMITED"
+  readonly: "true"
+sg_curator:
+  cluster:
+  - "CLUSTER_MONITOR"
+  - "CLUSTER_COMPOSITE_OPS_RO"
+  indices:
+    '*':
+      '*':
+      - "UNLIMITED"
+user_payengine_pci:
+  cluster: []
+  tenants:
+    payengine_pci_tenant: "RW"
+  indices:
+    pci?payengine?*:
+      '*':
+      - "UNLIMITED"
+user_admin:
+  cluster:
+  - "UNLIMITED"
+  tenants:
+    il_tenant: "RW"
+    mule_tenant: "RW"
+    myc_tenant: "RW"
+    ods_tenant: "RW"
+    payengine_pci_tenant: "RW"
+    admin_tenant: "RW"
+    payengine_tenant: "RW"
+  indices:
+    '*':
+      '*':
+      - "UNLIMITED"
+prometheus:
+  cluster:
+  - "ALL"
+  - "indices:monitor/stats"

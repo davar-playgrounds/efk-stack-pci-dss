@@ -1,0 +1,2 @@
+cron_expression: "00 12 * * *"
+curator_version: 5.6

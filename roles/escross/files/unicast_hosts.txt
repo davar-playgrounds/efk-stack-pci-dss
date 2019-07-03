@@ -1,0 +1,3 @@
+{% for masternode in hostvars.esmaster %}
+    {{ masternode..ansible_ssh_host }}
+{% endfor %}

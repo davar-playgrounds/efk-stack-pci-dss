@@ -1,0 +1,3 @@
+kibana_version: 6.6.0
+searchguard_kibana_version: "{{ kibana_version }}-18"
+kibana_es_host: localhost

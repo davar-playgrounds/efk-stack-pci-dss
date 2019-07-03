@@ -1,0 +1,80 @@
+---
+# Remember, leave a key empty if there is no value.  None will be a string,
+# not a Python "NoneType"
+#
+# Also remember that all examples have 'disable_action' set to True.  If you
+# want to use this action as a template, be sure to set this to False after
+# copying it.
+actions:
+  1:
+    action: delete_indices
+    description: >-
+      Delete myc.prod indices older than 30 days (based on index creation_date).
+    options:
+      ignore_empty_list: True
+      timeout_override:
+      continue_if_exception: False
+      disable_action: False
+    filters:
+    - filtertype: pattern
+      kind: prefix
+      value: myc.prod
+    - filtertype: age
+      source: creation_date
+      direction: older
+      unit: days
+      unit_count: 30
+  2:
+    action: delete_indices
+    description: >-
+      Delete myc.preprod indices older than 30 days (based on index creation_date).
+    options:
+      ignore_empty_list: True
+      timeout_override:
+      continue_if_exception: False
+      disable_action: False
+    filters:
+    - filtertype: pattern
+      kind: prefix
+      value: myc.preprod
+    - filtertype: age
+      source: creation_date
+      direction: older
+      unit: days
+      unit_count: 30
+  3:
+    action: delete_indices
+    description: >-
+      Delete myc.sit indices older than 30 days (based on index creation_date).
+    options:
+      ignore_empty_list: True
+      timeout_override:
+      continue_if_exception: False
+      disable_action: False
+    filters:
+    - filtertype: pattern
+      kind: prefix
+      value: myc.sit
+    - filtertype: age
+      source: creation_date
+      direction: older
+      unit: days
+      unit_count: 30
+  4:
+    action: delete_indices
+    description: >-
+      Delete myc.dev indices older than 30 days (based on index creation_date).
+    options:
+      ignore_empty_list: True
+      timeout_override:
+      continue_if_exception: False
+      disable_action: False
+    filters:
+    - filtertype: pattern
+      kind: prefix
+      value: myc.dev
+    - filtertype: age
+      source: creation_date
+      direction: older
+      unit: days
+      unit_count: 30
